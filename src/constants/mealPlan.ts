@@ -1,0 +1,72 @@
+export const LOCAL_MEALS = [
+  {
+    id: 'breakfast',
+    type: 'Breakfast',
+    time: '8:00 AM',
+    name: 'Moi Moi, eggs & fruit',
+    calories: 420,
+    protein: 29,
+    carbs: 44,
+    fat: 14,
+    icon: 'sunny-outline' as const,
+    ingredients: ['Bean flour', 'Eggs', 'Bell peppers', 'Bananas'],
+    substitutions: [
+      { name: 'Akara, eggs & fruit', calories: 450, note: 'Higher-fat market-day option' },
+      { name: 'Oats, eggs & banana', calories: 410, note: 'Fast weekday option' },
+    ],
+  },
+  {
+    id: 'lunch',
+    type: 'Lunch',
+    time: '1:00 PM',
+    name: 'Jollof rice & grilled chicken',
+    calories: 610,
+    protein: 43,
+    carbs: 72,
+    fat: 17,
+    icon: 'restaurant-outline' as const,
+    ingredients: ['Long-grain rice', 'Chicken breast', 'Tomatoes', 'Plantain'],
+    substitutions: [
+      { name: 'Coconut rice & grilled turkey', calories: 620, note: 'Similar protein and calories' },
+      { name: 'Yam porridge & grilled fish', calories: 590, note: 'Lower-cost local swap' },
+    ],
+  },
+  {
+    id: 'snack',
+    type: 'Snack',
+    time: '4:30 PM',
+    name: 'Greek yogurt & groundnuts',
+    calories: 260,
+    protein: 18,
+    carbs: 24,
+    fat: 11,
+    icon: 'nutrition-outline' as const,
+    ingredients: ['Greek yogurt', 'Groundnuts', 'Pawpaw'],
+    substitutions: [
+      { name: 'Tiger-nut smoothie', calories: 270, note: 'Dairy-free alternative' },
+      { name: 'Boiled eggs & orange', calories: 245, note: 'Higher-protein alternative' },
+    ],
+  },
+  {
+    id: 'dinner',
+    type: 'Dinner',
+    time: '7:30 PM',
+    name: 'Ofada rice, stew & fish',
+    calories: 520,
+    protein: 36,
+    carbs: 62,
+    fat: 14,
+    icon: 'moon-outline' as const,
+    ingredients: ['Ofada rice', 'Mackerel', 'Bell peppers', 'Spinach'],
+    substitutions: [
+      { name: 'Eba, okra soup & fish', calories: 535, note: 'Traditional high-fibre swap' },
+      { name: 'Boiled yam & garden egg sauce', calories: 500, note: 'Budget-friendly option' },
+    ],
+  },
+] as const;
+
+export const SHOPPING_SECTIONS = [
+  { title: 'Protein', items: ['Eggs · 12', 'Chicken breast · 1 kg', 'Mackerel · 4 fillets', 'Greek yogurt · 500 ml'] },
+  { title: 'Grains & staples', items: ['Bean flour · 500 g', 'Long-grain rice · 1 kg', 'Ofada rice · 500 g', 'Groundnuts · 250 g'] },
+  { title: 'Produce', items: ['Bell peppers · 8', 'Tomatoes · 10', 'Bananas · 6', 'Pawpaw · 1', 'Spinach · 2 bunches', 'Plantain · 4'] },
+] as const;
