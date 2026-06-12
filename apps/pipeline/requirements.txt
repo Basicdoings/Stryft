@@ -1,0 +1,5 @@
+modal
+supabase
+opencv-python-headless
+trimesh
+numpy

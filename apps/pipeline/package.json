@@ -1,0 +1,9 @@
+{
+  "name": "@stryft/pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "modal deploy main.py",
+    "serve": "modal serve main.py"
+  }
+}
