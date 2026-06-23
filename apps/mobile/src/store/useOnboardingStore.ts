@@ -1,5 +1,33 @@
 import { create } from 'zustand';
 
+export type ScanPose = 'front' | 'right' | 'left';
+
+export interface ScanPhoto {
+  uri: string;
+  base64: string | null;
+  width: number;
+  height: number;
+  mimeType: string | null;
+  fileName: string | null;
+  source: 'camera' | 'library';
+}
+
+type ScanPhotos = Record<ScanPose, ScanPhoto | null>;
+
+interface ScanPipelineResult {
+  status: 'success' | 'error' | 'processing' | 'rigging' | 'animating';
+  provider?: string;
+  tripo_task_id?: string;
+  generated_mesh_url?: string | null;
+  generated_preview_url?: string | null;
+  // Animation pipeline fields
+  rig_task_id?: string | null;
+  retarget_task_id?: string | null;
+  rigged_mesh_url?: string | null;
+  animated_mesh_url?: string | null;
+  message?: string;
+}
+
 interface OnboardingState {
   gender: 'Male' | 'Female' | 'Other' | null;
   age: number | null;
@@ -16,6 +44,8 @@ interface OnboardingState {
   sleepQuality: string | null;
   measurements: { height: number | null; waist: number | null; bodyFat: number | null };
   timelineWeeks: number | null;
+  scanPhotos: ScanPhotos;
+  scanPipelineResult: ScanPipelineResult | null;
   journey: string | null;
   onboardingComplete: boolean;
 
@@ -35,6 +65,9 @@ interface OnboardingState {
   setSleepQuality: (quality: string) => void;
   setMeasurements: (measurements: Partial<OnboardingState['measurements']>) => void;
   setTimelineWeeks: (weeks: number) => void;
+  setScanPhoto: (pose: ScanPose, photo: ScanPhoto | null) => void;
+  clearScanPhotos: () => void;
+  setScanPipelineResult: (result: ScanPipelineResult | null) => void;
   setJourney: (journey: string) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
@@ -56,6 +89,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   sleepQuality: null,
   measurements: { height: null, waist: null, bodyFat: null },
   timelineWeeks: null,
+  scanPhotos: { front: null, right: null, left: null },
+  scanPipelineResult: null,
   journey: null,
   onboardingComplete: false,
 
@@ -74,6 +109,9 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setSleepQuality: (sleepQuality) => set({ sleepQuality }),
   setMeasurements: (measurements) => set((state) => ({ measurements: { ...state.measurements, ...measurements } })),
   setTimelineWeeks: (timelineWeeks) => set({ timelineWeeks }),
+  setScanPhoto: (pose, photo) => set((state) => ({ scanPhotos: { ...state.scanPhotos, [pose]: photo } })),
+  clearScanPhotos: () => set({ scanPhotos: { front: null, right: null, left: null }, scanPipelineResult: null }),
+  setScanPipelineResult: (scanPipelineResult) => set({ scanPipelineResult }),
   setJourney: (journey) => set({ journey }),
   completeOnboarding: () => set({ onboardingComplete: true }),
   resetOnboarding: () => set({
@@ -92,6 +130,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     sleepQuality: null,
     measurements: { height: null, waist: null, bodyFat: null },
     timelineWeeks: null,
+    scanPhotos: { front: null, right: null, left: null },
+    scanPipelineResult: null,
     journey: null,
     onboardingComplete: false,
   }),

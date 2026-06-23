@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "supabase:start": "supabase start",
+    "supabase:start": "supabase start --ignore-health-check",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:db:push": "supabase db push",
     "supabase:functions:serve": "supabase functions serve",
+    "supabase:logs": "supabase logs",
+    "supabase:logs:f": "supabase logs -f",
     "supabase:link": "supabase login && supabase link --project-ref"
+  },
+  "dependencies": {
+    "supabase": "^2.107.0"
   }
 }

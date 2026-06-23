@@ -22,11 +22,15 @@ create table public.fitness_goals (
   timeline_weeks integer check (timeline_weeks in (8, 12, 16)) not null,  
     
   -- Supabase Storage Bucket File Path Reference Strings  
-  full_body_photo_url text not null,  
-  targeted_zone_photo_url text not null,  
+  front_scan_photo_url text,  
+  right_scan_photo_url text,  
+  left_scan_photo_url text,  
     
   -- Cloud Generated Assets  
+  generated_mesh_url text,
   generated_ai_texture_url text,  
+  tripo_task_id text,
+  tripo_provider text,
   initial_body_fat_pct decimal(4,2),  
   efficiency_coefficient decimal(3,2) default 1.00 not null,  
     

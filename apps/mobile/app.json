@@ -39,6 +39,14 @@
         }
       ],
       "@react-native-google-signin/google-signin",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Stryft to access photos you choose for your body scan.",
+          "cameraPermission": "Allow Stryft to use the camera for your body scan.",
+          "microphonePermission": false
+        }
+      ],
       "expo-font"
     ],
     "experiments": {

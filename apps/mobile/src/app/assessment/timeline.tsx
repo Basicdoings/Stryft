@@ -21,7 +21,7 @@ export default function TimelineScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header step={15} totalSteps={17} onBack={() => router.back()} />
+      <Header step={15} totalSteps={18} onBack={() => router.back()} />
       <View style={styles.content}>
         <Typography variant="h2" align="center" style={styles.title}>
           Choose your transformation timeline
@@ -38,8 +38,8 @@ export default function TimelineScreen() {
           ))}
         </View>
         <CustomButton
-          title="Build My Prediction"
-          onPress={() => router.push('/assessment/bodyAnalysis')}
+          title="Continue to Scan"
+          onPress={() => router.push('/assessment/scan' as never)}
           disabled={!timelineWeeks}
           showArrow
         />

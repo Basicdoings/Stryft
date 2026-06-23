@@ -8,6 +8,8 @@ import { CustomButton } from '@/components/CustomButton';
 import { useGameStore } from '@/store/useGameStore';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { COSMETICS } from '@/constants/gameContent';
+import { ModelViewer } from '@/components/ModelViewer';
+import { calculateTimelinePredictions } from '@/lib/predictionEngine';
 
 export default function AvatarScreen() {
   const router = useRouter();
@@ -26,6 +28,23 @@ export default function AvatarScreen() {
     Constitution: Math.min(99, 10 + (sleepQuality === 'Excellent' ? 12 : sleepQuality === 'Good' ? 8 : 4) + game.streak),
   };
 
+  const onboarding = useOnboardingStore();
+  const { scanPipelineResult } = onboarding;
+
+  // Use the most advanced mesh available (animated > rigged > base)
+  const meshUrl = scanPipelineResult?.animated_mesh_url || 
+                  scanPipelineResult?.rigged_mesh_url || 
+                  scanPipelineResult?.generated_mesh_url;
+
+  // Compute live morph targets based on user's biological profile
+  const predictions = calculateTimelinePredictions({
+    fitnessLevel: onboarding.fitnessLevel === 1 ? 'beginner' : onboarding.fitnessLevel >= 4 ? 'advanced' : 'intermediate',
+    timelineWeeks: (onboarding.timelineWeeks as any) || 12,
+    sleepQuality: (onboarding.sleepQuality?.toLowerCase() as any) || 'good',
+    caloricStrategy: 'surplus', // Default to surplus for avatar representation
+    primaryGoalZone: (onboarding.primaryGoal?.toLowerCase() as any) || 'abs',
+  });
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -43,31 +62,53 @@ export default function AvatarScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 3D WEBGL STUDIO PREVIEW (Simulated with ImageBackground) */}
+        {/* 3D WEBGL STUDIO PREVIEW */}
         <View style={styles.avatarCard}>
-          <ImageBackground source={{ uri: 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=1000&auto=format&fit=crop' }} style={styles.studioBg} imageStyle={{ borderRadius: 32 }}>
-            <LinearGradientOverlay opacity={0.6} />
-            <View style={styles.studioOverlay}>
-              <View style={[styles.auraCircle, { borderColor: avatar.color }]}>
-                <Ionicons name={avatar.icon as any} size={110} color={avatar.color} />
-                {equipped && (
-                  <View style={[styles.equippedBadge, { backgroundColor: equipped.color }]}>
-                    <Ionicons name={equipped.icon as any} size={18} color="#111" />
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.statusBox}>
-                <Typography variant="caption" color={avatar.color} weight="800" style={{ letterSpacing: 1 }}>
-                  {avatar.label.toUpperCase()}
-                </Typography>
-                <Typography variant="h2" color="#FFF" style={styles.avatarTitle}>{avatar.title}</Typography>
-                <Typography variant="caption" color="rgba(255,255,255,0.8)" align="center" weight="600">
-                  {avatar.message}
-                </Typography>
+          {meshUrl ? (
+            <View style={styles.studioContainer}>
+              <ModelViewer 
+                modelUrl={meshUrl}
+                zoneMorphs={predictions.zoneMorphs}
+                rimLightColor={avatar.color}
+                activeState={scanPipelineResult?.animation_status === 'animating' ? 'loading' : 'idle'}
+              />
+              <View style={styles.studioOverlayPointerEventsNone}>
+                <View style={styles.statusBox}>
+                  <Typography variant="caption" color={avatar.color} weight="800" style={{ letterSpacing: 1 }}>
+                    {avatar.label.toUpperCase()}
+                  </Typography>
+                  <Typography variant="h2" color="#FFF" style={styles.avatarTitle}>{avatar.title}</Typography>
+                  <Typography variant="caption" color="rgba(255,255,255,0.8)" align="center" weight="600">
+                    {avatar.message}
+                  </Typography>
+                </View>
               </View>
             </View>
-          </ImageBackground>
+          ) : (
+            <ImageBackground source={{ uri: 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=1000&auto=format&fit=crop' }} style={styles.studioBg} imageStyle={{ borderRadius: 32 }}>
+              <LinearGradientOverlay opacity={0.6} />
+              <View style={styles.studioOverlay}>
+                <View style={[styles.auraCircle, { borderColor: avatar.color }]}>
+                  <Ionicons name={avatar.icon as any} size={110} color={avatar.color} />
+                  {equipped && (
+                    <View style={[styles.equippedBadge, { backgroundColor: equipped.color }]}>
+                      <Ionicons name={equipped.icon as any} size={18} color="#111" />
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.statusBox}>
+                  <Typography variant="caption" color={avatar.color} weight="800" style={{ letterSpacing: 1 }}>
+                    {avatar.label.toUpperCase()}
+                  </Typography>
+                  <Typography variant="h2" color="#FFF" style={styles.avatarTitle}>{avatar.title}</Typography>
+                  <Typography variant="caption" color="rgba(255,255,255,0.8)" align="center" weight="600">
+                    {avatar.message}
+                  </Typography>
+                </View>
+              </View>
+            </ImageBackground>
+          )}
         </View>
 
         {/* LEVEL CARD */}
@@ -174,9 +215,11 @@ const styles = StyleSheet.create({
   back: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1E1E1E', alignItems: 'center', justifyContent: 'center' },
   headerBadge: { backgroundColor: 'rgba(255,107,0,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
 
-  avatarCard: { height: 380, marginBottom: 20 },
+  avatarCard: { height: 380, marginBottom: 20, borderRadius: 32, overflow: 'hidden' },
+  studioContainer: { width: '100%', height: '100%', backgroundColor: '#0A0A0A' },
   studioBg: { width: '100%', height: '100%' },
   studioOverlay: { flex: 1, padding: 24, alignItems: 'center', justifyContent: 'space-between' },
+  studioOverlayPointerEventsNone: { ...StyleSheet.absoluteFillObject, padding: 24, justifyContent: 'flex-end', pointerEvents: 'none' },
   
   auraCircle: { width: 180, height: 180, borderRadius: 90, borderWidth: 3, alignItems: 'center', justifyContent: 'center', marginTop: 20 },
   equippedBadge: { position: 'absolute', right: 8, bottom: 8, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#111' },

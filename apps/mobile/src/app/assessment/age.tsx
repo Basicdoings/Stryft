@@ -5,23 +5,19 @@ import { useRouter } from 'expo-router';
 import { useOnboardingStore } from '@/store/useOnboardingStore';
 import { Header } from '@/components/Header';
 import { Typography } from '@/components/Typography';
-import { LargeNumberInput } from '@/components/LargeNumberInput';
+import { WheelPicker } from '@/components/WheelPicker';
 import { CustomButton } from '@/components/CustomButton';
 import { Colors } from '@/constants/theme';
 
 export default function AgeScreen() {
   const router = useRouter();
   const { age, setAge } = useOnboardingStore();
-  const [localAge, setLocalAge] = useState(age ? age.toString() : '');
+  const [localAge, setLocalAge] = useState(age || 18);
 
   const handleContinue = () => {
-    if (isValidAge) {
-      setAge(parseInt(localAge, 10));
-      router.push('/assessment/fitnessLevel');
-    }
+    setAge(localAge);
+    router.push('/assessment/fitnessLevel');
   };
-  const ageNumber = Number(localAge);
-  const isValidAge = Number.isInteger(ageNumber) && ageNumber >= 18 && ageNumber <= 99;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -32,22 +28,19 @@ export default function AgeScreen() {
           What is your age?
         </Typography>
         
-        <View style={styles.inputContainer}>
-          <LargeNumberInput
-            value={localAge}
-            onChangeText={setLocalAge}
-            placeholder="0"
+        <View style={styles.pickerContainer}>
+          <WheelPicker 
+            value={localAge} 
+            onValueChange={setLocalAge} 
+            min={18} 
+            max={99} 
           />
-          <Typography variant="caption" color={localAge && !isValidAge ? '#FF6B6B' : Colors.dark.textSecondary}>
-            You must be between 18 and 99 years old.
-          </Typography>
         </View>
 
         <View style={styles.footer}>
           <CustomButton 
             title="Continue" 
             onPress={handleContinue} 
-            disabled={!isValidAge}
             showArrow
           />
         </View>
@@ -63,13 +56,14 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   title: {
     marginTop: 20,
     marginBottom: 40,
   },
-  inputContainer: {
+  pickerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

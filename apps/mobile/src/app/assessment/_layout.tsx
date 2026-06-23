@@ -22,6 +22,7 @@ export default function AssessmentLayout() {
       <Stack.Screen name="sleepQuality" />
       <Stack.Screen name="measurements" />
       <Stack.Screen name="timeline" />
+      <Stack.Screen name="scan" />
       <Stack.Screen name="bodyAnalysis" options={{ gestureEnabled: false }} />
       <Stack.Screen name="prediction" />
       <Stack.Screen name="journey" />

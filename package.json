@@ -7,5 +7,8 @@
   ],
   "dependencies": {
     "semver": "^7.8.4"
+  },
+  "scripts": {
+    "demo:morph": "npx http-server apps/morph-demo -p 8080"
   }
 }

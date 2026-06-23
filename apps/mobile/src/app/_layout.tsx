@@ -1,4 +1,6 @@
+import 'react-native-url-polyfill/auto';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { 
@@ -40,34 +42,35 @@ export default function RootLayout() {
   if (!loaded && !error) {
     return null;
   }
-
   return (
-    <ThemeProvider value={StryftTheme}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="landing" />
-        <Stack.Screen name="splash" />
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="assessment" />
-        <Stack.Screen name="mission" />
-        <Stack.Screen name="reward" />
-        <Stack.Screen name="checkin" />
-        <Stack.Screen name="today" />
-        <Stack.Screen name="meals" />
-        <Stack.Screen name="shopping-list" />
-        <Stack.Screen name="checkin-celebration" />
-        <Stack.Screen name="avatar" />
-        <Stack.Screen name="cosmetics" />
-        <Stack.Screen name="rewards" />
-        <Stack.Screen name="future-self" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen name="notifications" />
-        <Stack.Screen name="scan" />
-        <Stack.Screen name="community" />
-        <Stack.Screen name="premium" />
-        <Stack.Screen name="safety" />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={StryftTheme}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.dark.background } }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="landing" />
+          <Stack.Screen name="splash" />
+          <Stack.Screen name="auth" />
+          <Stack.Screen name="assessment" />
+          <Stack.Screen name="mission" />
+          <Stack.Screen name="reward" />
+          <Stack.Screen name="checkin" />
+          <Stack.Screen name="today" />
+          <Stack.Screen name="meals" />
+          <Stack.Screen name="shopping-list" />
+          <Stack.Screen name="checkin-celebration" />
+          <Stack.Screen name="avatar" />
+          <Stack.Screen name="cosmetics" />
+          <Stack.Screen name="rewards" />
+          <Stack.Screen name="future-self" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="scan" />
+          <Stack.Screen name="community" />
+          <Stack.Screen name="premium" />
+          <Stack.Screen name="safety" />
+        </Stack>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

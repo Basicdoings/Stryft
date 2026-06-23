@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stryft 3D Morphing Studio Demo</title>
+  <!-- Google Fonts: Work Sans and Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Work+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="index.css">
+  <!-- Three.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- GLTFLoader from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- Ionicons CDN for icons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+  <!-- MAIN HEADER -->
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-icon"><ion-icon name="sparkles" class="pulsing-glow"></ion-icon></div>
+      <div class="logo-text">
+        <h1>STRYFT 3D STUDIO</h1>
+        <p>3D Morphing & Volumetric Alignment Engine</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <span class="status-dot green"></span>
+      <span class="status-text">PIPELINE DEMO ONLINE</span>
+    </div>
+  </header>
+
+  <!-- APP CONTAINMENT GRID -->
+  <main class="app-container">
+
+    <!-- LEFT PANEL: PHOTO SCANNER -->
+    <section class="panel glass-card scanner-panel">
+      <div class="panel-header">
+        <ion-icon name="camera-outline"></ion-icon>
+        <h2>Vision Scan pipeline</h2>
+      </div>
+
+      <!-- File Dropzone -->
+      <div id="dropzone" class="dropzone">
+        <input type="file" id="photo-upload" accept="image/*" class="file-input">
+        <div class="dropzone-content">
+          <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+          <h3>Upload Body Scan</h3>
+          <p>Drag & drop or click to upload front-view photo</p>
+          <span class="badge">TEST SCANNER</span>
+        </div>
+      </div>
+
+      <!-- Monitor Screen -->
+      <div class="scanner-monitor">
+        <div id="scan-placeholder" class="scan-placeholder">
+          <ion-icon name="body-outline" class="scanning-body"></ion-icon>
+          <p>Awaiting photo upload...</p>
+        </div>
+        <div id="scan-active-view" class="scan-active-view hidden">
+          <img id="uploaded-img" class="uploaded-img" src="" alt="Uploaded source">
+          <!-- Canvas for overlays (SAM green outline, HMR skeleton keypoints) -->
+          <canvas id="scanner-overlay-canvas" class="overlay-canvas"></canvas>
+          <!-- Neon scan sweep effect -->
+          <div id="scanner-sweep" class="scanner-sweep hidden"></div>
+        </div>
+      </div>
+
+      <!-- Overlay Controls -->
+      <div class="view-overlay-controls disabled" id="overlay-controls">
+        <button class="btn-overlay active" id="toggle-sam">
+          <span class="dot green"></span> SAM MASK
+        </button>
+        <button class="btn-overlay active" id="toggle-hmr">
+          <span class="dot cyan"></span> HMR SKELETON
+        </button>
+      </div>
+
+      <!-- Live Pipeline Logs -->
+      <div class="logs-container">
+        <div class="logs-header">
+          <ion-icon name="terminal-outline"></ion-icon>
+          <h3>Processing Console</h3>
+        </div>
+        <div id="logs-console" class="logs-console">
+          <div class="log-line text-muted">[system] Ready. Awaiting user telemetry...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER PANEL: 3D VIEWPORT -->
+    <section class="panel glass-card viewport-panel">
+      <div class="panel-header justify-between">
+        <div class="header-left">
+          <ion-icon name="cube-outline"></ion-icon>
+          <h2>3D Avatar Studio</h2>
+        </div>
+        <div class="header-right">
+          <span class="badge accent" id="target-zone-badge">ZONE: GLOBAL VIEW</span>
+        </div>
+      </div>
+
+      <!-- 3D Canvas Canvas -->
+      <div class="canvas-wrapper">
+        <div id="canvas-container" class="canvas-container">
+          <!-- Three.js injects canvas here -->
+        </div>
+        <div id="loading-spinner" class="loading-spinner hidden">
+          <div class="spinner"></div>
+          <p>Deforming Mesh Geometry...</p>
+        </div>
+      </div>
+
+      <!-- Studio Quick Controls -->
+      <div class="studio-quick-bar">
+        <div class="view-mode-group">
+          <button class="btn-icon active" id="view-texture" title="Texture Mode"><ion-icon name="image-outline"></ion-icon></button>
+          <button class="btn-icon" id="view-wireframe" title="Wireframe Mode"><ion-icon name="grid-outline"></ion-icon></button>
+          <button class="btn-icon" id="view-skeleton" title="Skeleton Mode"><ion-icon name="git-branch-outline"></ion-icon></button>
+        </div>
+        <div class="camera-actions-group">
+          <button class="btn-icon" id="cam-front" title="Front View">F</button>
+          <button class="btn-icon" id="cam-side" title="Side View">S</button>
+          <button class="btn-icon" id="cam-back" title="Back View">B</button>
+          <button class="btn-icon" id="toggle-rotation" title="Toggle Auto-Rotate"><ion-icon name="refresh-outline"></ion-icon></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: PARAMETERS & BIO-PREDICTIONS -->
+    <section class="panel glass-card controls-panel">
+      <div class="panel-header">
+        <ion-icon name="fitness-outline"></ion-icon>
+        <h2>Prediction Controls</h2>
+      </div>
+
+      <!-- Quick Preset Targets -->
+      <div class="control-section">
+        <h3>1. Transformation Preset</h3>
+        <div class="preset-grid">
+          <button class="btn-preset active" data-preset="balanced">Default</button>
+          <button class="btn-preset" data-preset="shredded">Shredded Abs</button>
+          <button class="btn-preset" data-preset="glutes">Glute Builder</button>
+          <button class="btn-preset" data-preset="v-taper">V-Taper Hulk</button>
+        </div>
+      </div>
+
+      <!-- Biological Parameters -->
+      <div class="control-section">
+        <h3>2. Reality Filter Variables</h3>
+        <div class="input-row-group">
+          <div class="input-col">
+            <label for="input-level">Experience Tier</label>
+            <select id="input-level">
+              <option value="beginner">Beginner (+0.5 lbs/wk)</option>
+              <option value="intermediate" selected>Intermediate (+0.25 lbs/wk)</option>
+              <option value="advanced">Advanced (+0.125 lbs/wk)</option>
+            </select>
+          </div>
+          <div class="input-col">
+            <label for="input-sleep">Sleep Quality</label>
+            <select id="input-sleep">
+              <option value="excellent">Excellent (100% Recovery)</option>
+              <option value="good" selected>Good (100% Recovery)</option>
+              <option value="fair">Fair (-5% Recovery)</option>
+              <option value="poor">Poor (-15% Recovery)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-row-group">
+          <div class="input-col">
+            <label for="input-weeks">Timeline (Weeks)</label>
+            <select id="input-weeks">
+              <option value="8">8 Weeks</option>
+              <option value="12" selected>12 Weeks</option>
+              <option value="16">16 Weeks</option>
+            </select>
+          </div>
+          <div class="input-col">
+            <label for="input-caloric">Nutrition Strategy</label>
+            <select id="input-caloric">
+              <option value="deficit">Deficit (Fat Loss focus)</option>
+              <option value="maintenance">Maintenance (Recomp)</option>
+              <option value="surplus" selected>Surplus (Hypertrophy focus)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vertex Morph Target Sliders -->
+      <div class="control-section">
+        <h3>3. Vertex Group Morph Targets</h3>
+        
+        <div class="slider-group">
+          <div class="slider-info">
+            <label for="morph-abs">Abs Definition (Shred)</label>
+            <span class="slider-val" id="val-abs">0%</span>
+          </div>
+          <input type="range" id="morph-abs" min="0" max="1" step="0.05" value="0">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-info">
+            <label for="morph-glutes">Gluteus Scale</label>
+            <span class="slider-val" id="val-glutes">0%</span>
+          </div>
+          <input type="range" id="morph-glutes" min="0" max="1" step="0.05" value="0">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-info">
+            <label for="morph-taper">V-Taper (Chest / Lat Width)</label>
+            <span class="slider-val" id="val-taper">0%</span>
+          </div>
+          <input type="range" id="morph-taper" min="0" max="1" step="0.05" value="0">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-info">
+            <label for="morph-arms">Arm Mass</label>
+            <span class="slider-val" id="val-arms">0%</span>
+          </div>
+          <input type="range" id="morph-arms" min="0" max="1" step="0.05" value="0">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-info">
+            <label for="morph-legs">Leg Mass</label>
+            <span class="slider-val" id="val-legs">0%</span>
+          </div>
+          <input type="range" id="morph-legs" min="0" max="1" step="0.05" value="0">
+        </div>
+      </div>
+
+      <!-- Realtime Predictions Output Card -->
+      <div class="results-card">
+        <div class="results-header">
+          <ion-icon name="analytics-outline"></ion-icon>
+          <h3>Physiological Predictions</h3>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <span class="m-label">Efficiency Coefficient</span>
+            <span class="m-val highlight" id="metric-efficiency">100%</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">Muscle Gain (Est.)</span>
+            <span class="m-val" id="metric-muscle">0.00 kg</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">Waist Change</span>
+            <span class="m-val" id="metric-waist">-0.0 cm</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">Body Fat Change</span>
+            <span class="m-val" id="metric-fat">-0.0%</span>
+          </div>
+        </div>
+        <div class="efficiency-warning hidden" id="efficiency-tip">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span id="efficiency-tip-text">Poor sleep quality reduces recovery capacity.</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JS Code Link -->
+  <script src="app.js"></script>
+</body>
+</html>

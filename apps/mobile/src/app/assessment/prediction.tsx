@@ -11,11 +11,11 @@ import { useOnboardingStore } from '@/store/useOnboardingStore';
 
 export default function PredictionScreen() {
   const router = useRouter();
-  const { primaryGoal, timelineWeeks, calorieGoal, daysPerWeek } = useOnboardingStore();
+  const { primaryGoal, timelineWeeks, calorieGoal, daysPerWeek, scanPipelineResult } = useOnboardingStore();
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="Your Prediction" step={16} totalSteps={17} showBack={false} />
+      <Header title="Your Prediction" step={17} totalSteps={18} showBack={false} />
       <View style={styles.content}>
         <View style={styles.hero}>
           <View style={styles.aura}>
@@ -32,6 +32,17 @@ export default function PredictionScreen() {
           <Stat label="Daily target" value={`${calorieGoal ?? 1550} kcal`} />
           <Stat label="Training" value={`${daysPerWeek} days/week`} />
         </View>
+
+        {scanPipelineResult?.generated_mesh_url && (
+          <View style={{ marginTop: 16 }}>
+            <CustomButton 
+              title="View 3D Base Mesh" 
+              onPress={() => router.push('/body-model')} 
+              variant="secondary"
+            />
+          </View>
+        )}
+
         <View style={styles.note}>
           <Ionicons name="sparkles" size={20} color={Colors.dark.primary} />
           <Typography variant="caption" style={styles.noteText}>

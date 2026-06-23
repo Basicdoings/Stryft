@@ -24,21 +24,20 @@ pipeline_image = (
     gpu="A10G", # Use A10G or higher for fast ML inference & rendering
     timeout=300
 )
-def process_scans(user_id: str, full_body_b64: str, targeted_b64: str) -> Dict[str, Any]:
+def process_scans(user_id: str, front_b64: str, right_b64: str = "", left_b64: str = "") -> Dict[str, Any]:
     """
     Tier 1: 2D Photo Scan to 3D Mesh & Texture Processing
     - Receives base64-encoded images directly from the client.
     - DOES NOT save user photos to any storage (strict privacy compliance).
-    - Runs SAM (Segment Anything Model) to isolate the silhouette in-memory.
-    - Runs HMR 2.0 to extract bone lengths and proportions in-memory.
-    - Bakes the targeted UV texture onto the mesh.
-    - Uploads ONLY the resulting .glb and textures back to Supabase.
+    - Accepts front, right, and left body views for future custom processing.
     - Discards the original photos from memory immediately after processing.
+
+    Tripo3D generation is handled by the Supabase Edge Function at
+    supabase/functions/process-scan.
     """
     print(f"Processing scans for user {user_id}")
-    # TODO: Implement SAM and HMR 2.0 inference logic here
-    # TODO: Implement OpenCV/Trimesh texture baking logic here
-    
+    _ = (front_b64, right_b64, left_b64)
+
     return {
         "status": "success",
         "generated_mesh_url": f"https://.../scans/{user_id}_mesh.glb",
