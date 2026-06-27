@@ -3,6 +3,7 @@ import { Alert, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
 import { Header } from '@/components/Header';
@@ -10,6 +11,47 @@ import { Typography } from '@/components/Typography';
 import { CustomButton } from '@/components/CustomButton';
 import { ScanPose, useOnboardingStore } from '@/store/useOnboardingStore';
 import { submitThreeViewScan } from '@/lib/scanPipeline';
+
+/** Max dimension in pixels for scan photos sent to the edge function.
+ *  Tripo3D doesn't need more than 1024px and smaller images dramatically
+ *  reduce the base64 payload size, preventing Kong/Edge Runtime timeouts. */
+const MAX_IMAGE_DIMENSION = 1024;
+const UPLOAD_COMPRESS_QUALITY = 0.6;
+
+/**
+ * Resize and compress an image so the base64 payload stays small enough
+ * to survive the Kong → Edge Runtime → Tripo3D upload chain without timing out.
+ */
+async function compressForUpload(uri: string, width: number, height: number) {
+  const needsResize = width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION;
+
+  if (!needsResize) {
+    // Still re-compress even if dimensions are OK
+    const result = await ImageManipulator.manipulateAsync(uri, [], {
+      compress: UPLOAD_COMPRESS_QUALITY,
+      format: ImageManipulator.SaveFormat.JPEG,
+      base64: true,
+    });
+    return result;
+  }
+
+  // Resize so the longest edge is MAX_IMAGE_DIMENSION, preserving aspect ratio
+  const resizeOpts =
+    width >= height
+      ? { width: MAX_IMAGE_DIMENSION }
+      : { height: MAX_IMAGE_DIMENSION };
+
+  const result = await ImageManipulator.manipulateAsync(
+    uri,
+    [{ resize: resizeOpts }],
+    {
+      compress: UPLOAD_COMPRESS_QUALITY,
+      format: ImageManipulator.SaveFormat.JPEG,
+      base64: true,
+    },
+  );
+  return result;
+}
 
 const POSES: Array<{
   id: ScanPose;
@@ -30,13 +72,15 @@ export default function AssessmentScanScreen() {
   const completedCount = useMemo(() => POSES.filter((pose) => scanPhotos[pose.id]).length, [scanPhotos]);
   const ready = completedCount === POSES.length;
 
-  const saveAsset = (pose: ScanPose, asset: ImagePicker.ImagePickerAsset, source: 'camera' | 'library') => {
+  const saveAsset = async (pose: ScanPose, asset: ImagePicker.ImagePickerAsset, source: 'camera' | 'library') => {
+    // Resize & compress to keep base64 payload small for the edge function
+    const compressed = await compressForUpload(asset.uri, asset.width, asset.height);
     setScanPhoto(pose, {
-      uri: asset.uri,
-      base64: asset.base64 ?? null,
-      width: asset.width,
-      height: asset.height,
-      mimeType: asset.mimeType ?? 'image/jpeg',
+      uri: compressed.uri,
+      base64: compressed.base64 ?? null,
+      width: compressed.width,
+      height: compressed.height,
+      mimeType: 'image/jpeg',
       fileName: asset.fileName ?? `${pose}-scan.jpg`,
       source,
     });
@@ -54,13 +98,12 @@ export default function AssessmentScanScreen() {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
         allowsEditing: false,
-        base64: true,
-        quality: 0.25,
+        quality: 0.8,
         cameraType: ImagePicker.CameraType.back,
       });
 
       if (!result.canceled && result.assets[0]) {
-        saveAsset(pose, result.assets[0], 'camera');
+        await saveAsset(pose, result.assets[0], 'camera');
       }
     } finally {
       setActivePose(null);
@@ -79,12 +122,11 @@ export default function AssessmentScanScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: false,
-        base64: true,
-        quality: 0.25,
+        quality: 0.8,
       });
 
       if (!result.canceled && result.assets[0]) {
-        saveAsset(pose, result.assets[0], 'library');
+        await saveAsset(pose, result.assets[0], 'library');
       }
     } finally {
       setActivePose(null);

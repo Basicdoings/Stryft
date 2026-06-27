@@ -1,7 +1,7 @@
 import { Typography } from '@/components/Typography';
 import { Colors } from '@/constants/theme';
 import { StudioBackdrop } from '@/components/StudioBackdrop';
-import { Environment, OrbitControls, useAnimations, useGLTF } from '@react-three/drei/native';
+import { OrbitControls, useAnimations, useGLTF } from '@react-three/drei/native';
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, LogBox, StyleSheet, View } from 'react-native';
@@ -299,6 +299,7 @@ function Model({
   onLoad,
   onBodyMetrics,
   enableEntrance,
+  onEntranceComplete,
 }: {
   url: string;
   activeState: string;
@@ -525,7 +526,6 @@ export function ModelViewer({
         <Suspense fallback={null}>
           {/* ── Studio Environment ── */}
           <StudioBackdrop rimLightColor={rimLightColor} />
-          <Environment preset="warehouse" />
 
           {/* ── Cinematic Entrance Camera ── */}
           <EntranceCameraRig enabled={enableEntrance && !loading} zoneFocus={zoneFocus} />
@@ -545,7 +545,7 @@ export function ModelViewer({
           {/* ── Manual touch controls (active after entrance completes) ── */}
           <OrbitControls
             enablePan={false}
-            enableZoom={true}
+            enableZoom={false}
             enableDamping={true}
             dampingFactor={0.05}
             minPolarAngle={Math.PI / 4}
